@@ -1,6 +1,5 @@
 // main.js - consume /api/productos and render carousel
 (function(){
-  // 🔥 URL CORREGIDA (IMPORTANTE)
   const API = 'https://nexatech-backend-production.up.railway.app/api/productos';
 
   const track = document.getElementById('sliderTrack');
@@ -11,20 +10,29 @@
   const blurToggle = document.getElementById('blurToggle');
 
   function formatCurrency(val){
-    try{ return new Intl.NumberFormat('es-ES',{style:'currency',currency:'USD'}).format(val); }catch(e){return '$'+val}
+    try {
+      return new Intl.NumberFormat('es-ES', {
+        style:'currency',
+        currency:'USD'
+      }).format(val);
+    } catch(e){
+      return '$'+val;
+    }
   }
 
   function createProductCard(p){
     const art = document.createElement('article');
     art.className = 'product-card';
 
-    const preview = document.createElement('div'); preview.className = 'product-preview';
+    const preview = document.createElement('div');
+    preview.className = 'product-preview';
+
     const img = document.createElement('img');
     img.alt = p.nombre || 'Producto';
 
     let imgSrc = p.imagen || '';
     if(!imgSrc){
-      imgSrc = 'https://via.placeholder.com/800x600?text='+encodeURIComponent(p.nombre||'Producto');
+      imgSrc = 'https://via.placeholder.com/800x600?text=' + encodeURIComponent(p.nombre || 'Producto');
     } else if(!imgSrc.startsWith('http') && !imgSrc.startsWith('/')){
       imgSrc = '/images/' + imgSrc;
     }
@@ -32,25 +40,48 @@
     img.src = imgSrc;
     img.onerror = () => {
       img.onerror = null;
-      img.src = 'https://via.placeholder.com/800x600?text='+encodeURIComponent(p.nombre||'Producto');
+      img.src = 'https://via.placeholder.com/800x600?text=' + encodeURIComponent(p.nombre || 'Producto');
     };
 
     preview.appendChild(img);
 
-    const content = document.createElement('div'); content.className = 'product-content';
-    const label = document.createElement('span'); label.className = 'product-label'; label.textContent = p.categoria || 'Producto';
-    const name = document.createElement('h3'); name.className = 'product-name'; name.textContent = p.nombre || 'Sin nombre';
-    const copy = document.createElement('p'); copy.className = 'product-copy'; copy.textContent = p.descripcion || '';
+    const content = document.createElement('div');
+    content.className = 'product-content';
 
-    const meta = document.createElement('div'); meta.className = 'product-meta';
-    const m1 = document.createElement('span'); m1.textContent = (p.cantidad!=null)?('Stock: '+p.cantidad):'Disponible';
-    const m2 = document.createElement('span'); m2.textContent = p.tipo || '';
+    const label = document.createElement('span');
+    label.className = 'product-label';
+    label.textContent = p.categoria || 'Producto';
+
+    const name = document.createElement('h3');
+    name.className = 'product-name';
+    name.textContent = p.nombre || 'Sin nombre';
+
+    const copy = document.createElement('p');
+    copy.className = 'product-copy';
+    copy.textContent = p.descripcion || '';
+
+    const meta = document.createElement('div');
+    meta.className = 'product-meta';
+
+    const m1 = document.createElement('span');
+    m1.textContent = (p.cantidad!=null) ? ('Stock: ' + p.cantidad) : 'Disponible';
+
+    const m2 = document.createElement('span');
+    m2.textContent = p.tipo || '';
+
     meta.appendChild(m1);
     meta.appendChild(m2);
 
-    const footer = document.createElement('div'); footer.className = 'product-footer';
-    const price = document.createElement('div'); price.className = 'product-price'; price.textContent = formatCurrency(p.precio || 0);
-    const cta = document.createElement('div'); cta.className = 'product-cta'; cta.textContent = 'Ver detalles';
+    const footer = document.createElement('div');
+    footer.className = 'product-footer';
+
+    const price = document.createElement('div');
+    price.className = 'product-price';
+    price.textContent = formatCurrency(p.precio || 0);
+
+    const cta = document.createElement('div');
+    cta.className = 'product-cta';
+    cta.textContent = 'Ver detalles';
 
     footer.appendChild(price);
     footer.appendChild(cta);
@@ -70,12 +101,30 @@
   async function loadProducts(){
     try{
       const res = await fetch(API, {cache:'no-store'});
-      if(!res.ok) throw new Error('API status '+res.status);
+
+      if(!res.ok){
+        throw new Error('API status ' + res.status);
+      }
+
       const data = await res.json();
-      const list = Array.isArray(data)?data:(data.rows||[]);
+
+      console.log("🔥 DATA BACKEND:", data);
+
+      let list = [];
+
+      // 🔥 SOPORTA TODOS LOS FORMATOS
+      if (Array.isArray(data)) {
+        list = data;
+      } else if (data.productos) {
+        list = data.productos;
+      } else if (data.rows) {
+        list = data.rows;
+      }
+
       render(list);
-    }catch(err){
-      console.error('Error cargando productos', err);
+
+    } catch(err){
+      console.error('❌ Error cargando productos', err);
       render([]);
     }
   }
@@ -87,10 +136,10 @@
     if(!track) return;
 
     track.innerHTML = '';
-    dotsWrap && (dotsWrap.innerHTML = '');
+    if(dotsWrap) dotsWrap.innerHTML = '';
 
-    cards = list.map(p=> createProductCard(p));
-    cards.forEach(c=> track.appendChild(c));
+    cards = list.map(p => createProductCard(p));
+    cards.forEach(c => track.appendChild(c));
 
     if(dotsWrap){
       cards.forEach((_,i)=>{
@@ -145,7 +194,7 @@
   view?.addEventListener('pointerup', ()=>{
     if(pointerStart===null) return;
     if(Math.abs(pointerDelta)>40){
-      goTo(pointerDelta>0?index-1:index+1);
+      goTo(pointerDelta>0 ? index-1 : index+1);
     }
     pointerStart=null;
     pointerDelta=0;
