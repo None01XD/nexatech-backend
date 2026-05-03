@@ -21,18 +21,19 @@ app.get('/test', (req, res) => {
   res.send('Servidor funcionando correctamente');
 });
 
-// DB status
+// DB status (muy útil para probar conexión)
 app.get('/db-status', async (req, res) => {
   try {
     const pool = require('./config/db');
     const [rows] = await pool.query('SELECT 1 AS ok');
     res.json({ db: 'ok', result: rows });
   } catch (err) {
+    console.error('DB ERROR:', err);
     res.status(500).json({ db: 'error', message: err.message });
   }
 });
 
-// Frontend (MUY IMPORTANTE)
+// Frontend
 const staticPath = path.join(__dirname, 'public');
 console.log('Serving static files from:', staticPath);
 app.use(express.static(staticPath));
@@ -45,10 +46,15 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(staticPath, 'index.html'));
 });
 
-// Error handler
+// 🔥 ERROR HANDLER MEJORADO (CLAVE)
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ message: 'Internal Server Error' });
+  console.error('🔥 ERROR REAL COMPLETO:', err);
+
+  res.status(500).json({
+    message: 'Internal Server Error',
+    error: err.message,
+    stack: err.stack // opcional, pero útil para debug
+  });
 });
 
 module.exports = app;
