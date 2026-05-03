@@ -21,7 +21,7 @@ exports.create = async (req, res, next) => {
     if (errors.length) return res.status(400).json({ errors });
 
     const producto = await Producto.create({ nombre, precio, cantidad });
-    res.status(201).json({ producto });
+    res.status(201).json(producto); // 🔥 FIX
   } catch (err) {
     next(err);
   }
@@ -30,8 +30,9 @@ exports.create = async (req, res, next) => {
 exports.findAll = async (req, res, next) => {
   try {
     const productos = await Producto.findAll();
-    res.json({ productos });
+    res.json(productos); // 🔥 FIX
   } catch (err) {
+    console.error(err); // 🔥 DEBUG
     next(err);
   }
 };
@@ -41,7 +42,7 @@ exports.findById = async (req, res, next) => {
     const { id } = req.params;
     const producto = await Producto.findById(id);
     if (!producto) return res.status(404).json({ message: 'Producto no encontrado' });
-    res.json({ producto });
+    res.json(producto); // 🔥 FIX
   } catch (err) {
     next(err);
   }
