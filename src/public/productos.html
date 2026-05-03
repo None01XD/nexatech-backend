@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Productos — NexaTech</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+<a class="skip-link" href="#main">Saltar al contenido</a>
+<div class="page-shell">
+
+  <!-- HEADER -->
+  <header class="header" role="banner">
+    <div class="brand">
+      <div class="logo">NEXA</div>
+      <div>
+        <div class="brand-name">NexaTech</div>
+        <div class="muted">Catálogo empresarial</div>
+      </div>
+    </div>
+
+    <nav class="nav" role="navigation" aria-label="Principal">
+      <a href="/">Inicio</a>
+      <a href="/about.html">Nosotros</a>
+      <a href="/contact.html">Contacto</a>
+    </nav>
+
+    <!-- actions removed; site uses single nocturnal palette -->
+  </header>
+
+  <!-- MAIN -->
+  <main id="main" class="container" role="main">
+
+    <section class="page-header">
+      <h1>Catálogo de Productos</h1>
+      <p class="muted">Gestión en tiempo real desde la API</p>
+    </section>
+
+    <div class="grid-2">
+
+      <!-- PRODUCTOS -->
+      <section aria-labelledby="lista-productos">
+        <h2 id="lista-productos" class="hidden">Productos</h2>
+        <div id="productos" class="product-grid" role="list" aria-live="polite"></div>
+      </section>
+
+      <!-- FORMULARIO -->
+      <aside class="card" aria-labelledby="form-title">
+        <h3 id="form-title">Agregar producto</h3>
+
+        <form id="formAdd" class="form">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" name="nombre" placeholder="Nombre del producto" required />
+          <label for="precio">Precio</label>
+          <input id="precio" name="precio" type="number" placeholder="Precio" required />
+          <label for="cantidad">Cantidad</label>
+          <input id="cantidad" name="cantidad" type="number" placeholder="Cantidad" required />
+          <button class="btn btn-primary" type="submit">Agregar</button>
+        </form>
+      </aside>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© 2026 NexaTech — Todos los derechos reservados</p>
+  </footer>
+
+</div>
+
+<script>
+(async function(){
+  const api = '/api/productos';
+  const list = document.getElementById('productos');
+
+  function createCard(p){
+    const item = document.createElement('article');
+    item.className = 'product-card';
+    item.setAttribute('role','listitem');
+
+    const imgWrap = document.createElement('div'); imgWrap.className='product-preview';
+    const img = document.createElement('img');
+    // normalize image source: full URL, absolute path, or filename placed under /images
+    let src = p.imagen || '';
+    if(!src) src = 'https://via.placeholder.com/600x400?text=Producto';
+    else if(!src.startsWith('http') && !src.startsWith('/')) src = '/images/' + src;
+    img.src = src; img.alt = p.nombre || 'Producto';
+    img.onerror = function(){ this.onerror=null; this.src = 'https://via.placeholder.com/600x400?text=Producto' };
+    imgWrap.appendChild(img);
+
+    const content = document.createElement('div'); content.className='product-content';
+    const h = document.createElement('h3'); h.className='product-name'; h.textContent = p.nombre || 'Sin nombre';
+    const price = document.createElement('div'); price.className='product-price'; price.textContent = (p.precio!=null)?('$'+p.precio):'';
+    const meta = document.createElement('div'); meta.className='muted'; meta.textContent = (p.cantidad!=null)?(p.cantidad+' unidades'):'';
+    const cta = document.createElement('button'); cta.className='product-cta'; cta.type='button'; cta.textContent='Ver';
+    const id = p.id || p.id_producto || '';
+    cta.addEventListener('click', ()=> { if(id) location.href = '/product.html?id='+id; });
+
+    content.appendChild(h); content.appendChild(price); content.appendChild(meta); content.appendChild(cta);
+    item.appendChild(imgWrap); item.appendChild(content);
+    return item;
+  }
+
+  async function load(){
+    try{
+      const res = await fetch(api,{cache:'no-store'});
+      if(!res.ok) throw new Error('API '+res.status);
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : (data.rows || data.productos || []);
+      list.innerHTML = '';
+      items.forEach(p=> list.appendChild(createCard(p)));
+    }catch(err){
+      list.innerHTML = '<div class="muted">No se pudieron cargar los productos.</div>';
+      console.error(err);
+    }
+  }
+
+  document.getElementById('formAdd').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const nombre = document.getElementById('nombre').value;
+    const precio = Number(document.getElementById('precio').value);
+    const cantidad = Number(document.getElementById('cantidad').value);
+    try{
+      await fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre,precio,cantidad})});
+      e.target.reset();
+      await load();
+    }catch(err){ console.error(err); alert('Error al agregar'); }
+  });
+
+  // expose for debug
+  window._reloadProducts = load;
+  await load();
+})();
+</script>
+
+</body>
+</html>

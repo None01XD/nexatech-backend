@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Producto — NexaTech</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+<div class="page-shell">
+
+<header class="header">
+  <div class="logo">NEXA</div>
+  <nav>
+    <a href="/">Inicio</a>
+    <a href="/productos.html">Productos</a>
+  </nav>
+</header>
+
+<main class="container">
+  <div id="detail" class="product-detail"></div>
+</main>
+
+<footer class="footer">
+  <p>© NexaTech</p>
+</footer>
+
+</div>
+
+<script>
+const id = new URLSearchParams(location.search).get('id');
+
+async function load(){
+  const res = await fetch('/api/productos/'+id);
+  const { producto } = await res.json();
+
+  document.getElementById('detail').innerHTML = `
+    <div class="detail-card">
+      <img src="https://via.placeholder.com/600"/>
+      <div>
+        <h1>${producto.nombre}</h1>
+        <p class="price">$${producto.precio}</p>
+        <p>Stock: ${producto.cantidad}</p>
+        <small>${producto.created_at}</small>
+      </div>
+    </div>
+  `;
+}
+
+load();
+</script>
+
+</body>
+</html>

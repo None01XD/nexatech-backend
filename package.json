@@ -1,0 +1,22 @@
+{
+  "name": "backend-productos",
+  "version": "1.0.0",
+  "description": "API REST de Productos - Node.js, Express, MySQL",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "mysql2": "^3.22.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
