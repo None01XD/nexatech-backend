@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Login Admin — NexaTech</title>
+
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+<div class="page-shell">
+
+  <!-- HEADER -->
+  <header class="header">
+
+    <div class="brand">
+      <div class="logo">NEXA</div>
+
+      <div>
+        <div class="brand-name">NexaTech</div>
+        <div class="muted">Panel Administrativo</div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- MAIN -->
+  <main
+    style="
+      min-height:80vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    "
+  >
+
+    <section
+      class="card"
+      style="
+        width:100%;
+        max-width:420px;
+        padding:32px;
+      "
+    >
+
+      <h1
+        style="
+          margin-bottom:12px;
+          font-size:2rem;
+        "
+      >
+        Iniciar Sesión
+      </h1>
+
+      <p
+        class="muted"
+        style="margin-bottom:24px;"
+      >
+        Acceso exclusivo para administradores
+      </p>
+
+      <!-- FORM -->
+      <form id="loginForm" class="form">
+
+        <label>Email</label>
+
+        <input
+          type="email"
+          id="email"
+          placeholder="admin@nexatech.com"
+          required
+        >
+
+        <label style="margin-top:14px;">
+          Contraseña
+        </label>
+
+        <input
+          type="password"
+          id="password"
+          placeholder="••••••••"
+          required
+        >
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          style="
+            width:100%;
+            margin-top:24px;
+          "
+        >
+          Ingresar
+        </button>
+
+      </form>
+
+      <!-- ERROR -->
+      <div
+        id="error"
+        style="
+          color:#ff7a7a;
+          margin-top:16px;
+          display:none;
+        "
+      ></div>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script>
+
+const form = document.getElementById('loginForm');
+
+const errorBox = document.getElementById('error');
+
+form.addEventListener('submit', async (e) => {
+
+  e.preventDefault();
+
+  errorBox.style.display = 'none';
+
+  const email =
+    document.getElementById('email').value;
+
+  const password =
+    document.getElementById('password').value;
+
+  try {
+
+    const res = await fetch(
+      '/api/auth/login',
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+          email,
+          password
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if(!res.ok){
+
+      throw new Error(
+        data.message || 'Error login'
+      );
+
+    }
+
+    // =========================
+    // SAVE TOKEN
+    // =========================
+
+    localStorage.setItem(
+      'token',
+      data.token
+    );
+
+    localStorage.setItem(
+      'user',
+      JSON.stringify(data.user)
+    );
+
+    // =========================
+    // REDIRECT
+    // =========================
+
+    window.location.href =
+      '/admin.html';
+
+  } catch(err){
+
+    errorBox.style.display = 'block';
+
+    errorBox.textContent =
+      err.message;
+
+    console.error(err);
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>
