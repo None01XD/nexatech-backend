@@ -1,3 +1,4 @@
+const adminRoutes = require('./admin/admin.routes');
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -22,6 +23,9 @@ app.use('/api/productos', productoRoutes);
 
 console.log('Mounting /api/auth');
 app.use('/api/auth', authRoutes);
+
+console.log('Mounting /api/admin');
+app.use('/api/admin', adminRoutes);
 
 // =========================
 // TEST ROUTES
