@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+  >
+
+  <title>Admin Dashboard — NexaTech</title>
+
+  <link rel="stylesheet" href="/css/style.css">
+
+</head>
+
+<body>
+
+<div class="page-shell">
+
+  <!-- HEADER -->
+  <header class="header">
+
+    <div class="brand">
+
+      <div class="logo">
+        NEXA
+      </div>
+
+      <div>
+
+        <div class="brand-name">
+          NexaTech
+        </div>
+
+        <div class="muted">
+          Dashboard Administrativo
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="actions">
+
+      <button
+        id="logoutBtn"
+        class="btn btn-secondary"
+      >
+        Cerrar sesión
+      </button>
+
+    </div>
+
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- TITLE -->
+    <section
+      class="section-surface"
+      style="margin-top:20px;"
+    >
+
+      <h1
+        style="
+          font-size:2rem;
+          margin-bottom:10px;
+        "
+      >
+        Panel Administrativo
+      </h1>
+
+      <p class="muted">
+        Gestiona productos, stock y precios
+      </p>
+
+    </section>
+
+    <!-- FORM -->
+    <section
+      class="section-surface"
+    >
+
+      <h2
+        style="
+          margin-bottom:18px;
+        "
+      >
+        Agregar producto
+      </h2>
+
+      <form
+        id="productForm"
+        class="grid-2"
+      >
+
+        <div>
+
+          <label>Nombre</label>
+
+          <input
+            type="text"
+            id="nombre"
+            required
+          >
+
+        </div>
+
+        <div>
+
+          <label>Precio</label>
+
+          <input
+            type="number"
+            id="precio"
+            required
+          >
+
+        </div>
+
+        <div>
+
+          <label>Cantidad</label>
+
+          <input
+            type="number"
+            id="cantidad"
+            required
+          >
+
+        </div>
+
+        <div
+          style="
+            display:flex;
+            align-items:end;
+          "
+        >
+
+          <button
+            class="btn btn-primary"
+            type="submit"
+            style="width:100%;"
+          >
+            Guardar producto
+          </button>
+
+        </div>
+
+      </form>
+
+    </section>
+
+    <!-- PRODUCTS -->
+    <section
+      class="section-surface"
+    >
+
+      <h2
+        style="
+          margin-bottom:20px;
+        "
+      >
+        Productos
+      </h2>
+
+      <div
+        id="productsGrid"
+        class="product-grid"
+      ></div>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script>
+
+// =========================
+// AUTH
+// =========================
+
+const token =
+  localStorage.getItem('token');
+
+if(!token){
+
+  window.location.href =
+    '/login.html';
+
+}
+
+// =========================
+// LOGOUT
+// =========================
+
+document
+  .getElementById('logoutBtn')
+  .addEventListener('click', () => {
+
+    localStorage.removeItem('token');
+
+    localStorage.removeItem('user');
+
+    window.location.href =
+      '/login.html';
+
+  });
+
+// =========================
+// LOAD PRODUCTS
+// =========================
+
+const grid =
+  document.getElementById('productsGrid');
+
+async function loadProducts(){
+
+  try {
+
+    const res = await fetch(
+      '/api/productos'
+    );
+
+    const productos =
+      await res.json();
+
+    grid.innerHTML = '';
+
+    productos.productos.forEach(p => {
+
+      const card =
+        document.createElement('div');
+
+      card.className = 'card';
+
+      card.innerHTML = `
+        <h3>${p.nombre}</h3>
+
+        <p class="muted">
+          Precio: $${p.precio}
+        </p>
+
+        <p class="muted">
+          Stock: ${p.cantidad}
+        </p>
+
+        <p
+          style="
+            margin-top:10px;
+            font-weight:bold;
+            color:
+              ${p.status === 'agotado'
+                ? '#ff7a7a'
+                : '#7aff9d'
+              };
+          "
+        >
+          ${p.status.toUpperCase()}
+        </p>
+
+        <button
+          onclick="deleteProduct(${p.id})"
+          class="btn btn-secondary"
+          style="
+            width:100%;
+            margin-top:14px;
+          "
+        >
+          Eliminar
+        </button>
+      `;
+
+      grid.appendChild(card);
+
+    });
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
+// =========================
+// CREATE PRODUCT
+// =========================
+
+const form =
+  document.getElementById('productForm');
+
+form.addEventListener(
+  'submit',
+  async (e) => {
+
+    e.preventDefault();
+
+    const nombre =
+      document.getElementById('nombre').value;
+
+    const precio =
+      document.getElementById('precio').value;
+
+    const cantidad =
+      document.getElementById('cantidad').value;
+
+    try {
+
+      const res = await fetch(
+        '/api/productos',
+        {
+          method:'POST',
+
+          headers:{
+            'Content-Type':'application/json'
+          },
+
+          body: JSON.stringify({
+            nombre,
+            precio,
+            cantidad
+          })
+        }
+      );
+
+      if(!res.ok){
+
+        throw new Error(
+          'Error creando producto'
+        );
+
+      }
+
+      form.reset();
+
+      loadProducts();
+
+    } catch(err){
+
+      console.error(err);
+
+      alert(err.message);
+
+    }
+
+  }
+);
+
+// =========================
+// DELETE
+// =========================
+
+async function deleteProduct(id){
+
+  const ok = confirm(
+    '¿Eliminar producto?'
+  );
+
+  if(!ok) return;
+
+  try {
+
+    const res = await fetch(
+      '/api/productos/' + id,
+      {
+        method:'DELETE'
+      }
+    );
+
+    if(!res.ok){
+
+      throw new Error(
+        'Error eliminando'
+      );
+
+    }
+
+    loadProducts();
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
+// =========================
+// INIT
+// =========================
+
+loadProducts();
+
+</script>
+
+</body>
+</html>
