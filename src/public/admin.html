@@ -248,6 +248,25 @@
     id="salesChart"
   ></canvas>
 
+  <!-- LOGS -->
+
+<section
+  class="section-surface"
+  style="margin-top:24px;"
+>
+
+  <h2
+    style="
+      margin-bottom:20px;
+    "
+  >
+    Logs del sistema
+  </h2>
+
+  <div id="logsTable"></div>
+
+</section>
+
 </div>
 
 </section>
@@ -327,6 +346,99 @@ async function loadSales(){
 // =========================
 
 async function loadChart(){
+
+  // =========================
+// LOAD LOGS
+// =========================
+
+async function loadLogs(){
+
+  try {
+
+    const res = await fetch(
+      '/api/admin/logs',
+      {
+        headers:{
+          Authorization:
+            'Bearer ' + token
+        }
+      }
+    );
+
+    const logs =
+      await res.json();
+
+    const container =
+      document.getElementById(
+        'logsTable'
+      );
+
+    if(!logs.length){
+
+      container.innerHTML = `
+        <div class="muted">
+          No hay logs
+        </div>
+      `;
+
+      return;
+
+    }
+
+    container.innerHTML = `
+      <table
+        style="
+          width:100%;
+          border-collapse:collapse;
+        "
+      >
+        <thead>
+
+          <tr>
+
+            <th>Acción</th>
+
+            <th>Detalles</th>
+
+            <th>Fecha</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${logs.map(log => `
+            <tr>
+
+              <td>
+                ${log.action}
+              </td>
+
+              <td>
+                ${log.details}
+              </td>
+
+              <td>
+                ${new Date(
+                  log.created_at
+                ).toLocaleString()}
+              </td>
+
+            </tr>
+          `).join('')}
+
+        </tbody>
+      </table>
+    `;
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
 
   try {
 
@@ -643,6 +755,7 @@ form.addEventListener(
       loadStats();
       loadSales();
       loadChart();
+      loadLogs();
 
     } catch(err){
 

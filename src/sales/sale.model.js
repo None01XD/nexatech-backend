@@ -1,3 +1,5 @@
+const Log =
+  require('../logs/log.model');
 const pool = require('../config/db');
 
 const Sale = {
@@ -118,6 +120,13 @@ const Sale = {
       }
 
       await conn.commit();
+      await Log.create(
+
+  'Nueva venta',
+
+  `Venta #${ventaId} realizada por $${total}`
+
+);
 
       return {
         ok:true,

@@ -1,3 +1,5 @@
+const adminLogsRoutes =
+  require('./admin/admin.logs.routes');
 const adminSalesRoutes =
   require('./admin/admin.sales.routes');
 const adminStatsRoutes =
@@ -78,6 +80,11 @@ app.use(
 app.use(
   '/api/admin',
   adminSalesRoutes
+);
+
+app.use(
+  '/api/admin',
+  adminLogsRoutes
 );
 
 console.log(
