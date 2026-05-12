@@ -278,7 +278,7 @@ document
   .getElementById('checkoutBtn')
   .addEventListener(
     'click',
-    () => {
+    async () => {
 
       if(cart.length === 0){
 
@@ -290,9 +290,64 @@ document
 
       }
 
-      alert(
-        'Checkout próximamente 😎'
-      );
+      try {
+
+        const res = await fetch(
+          '/api/sales/checkout',
+          {
+            method:'POST',
+
+            headers:{
+              'Content-Type':'application/json'
+            },
+
+            body: JSON.stringify({
+              cart
+            })
+          }
+        );
+
+        const data =
+          await res.json();
+
+        if(!res.ok){
+
+          throw new Error(
+            data.message ||
+            'Error checkout'
+          );
+
+        }
+
+        // =========================
+        // SUCCESS
+        // =========================
+
+        alert(
+          'Compra realizada correctamente 😎'
+        );
+
+        console.log(data);
+
+        // vaciar carrito
+        cart = [];
+
+        localStorage.removeItem('cart');
+
+        renderCart();
+
+        // volver a tienda
+        window.location.href = '/';
+
+      } catch(err){
+
+        console.error(err);
+
+        alert(
+          err.message
+        );
+
+      }
 
     }
   );
