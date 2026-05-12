@@ -1,3 +1,5 @@
+const adminStatsRoutes =
+  require('./admin/admin.stats.routes');
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -80,6 +82,14 @@ app.use(
   saleRoutes
 );
 
+console.log(
+  'Mounting /api/admin/stats'
+);
+
+app.use(
+  '/api/admin',
+  adminStatsRoutes
+);
 // =========================
 // TEST
 // =========================
