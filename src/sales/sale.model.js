@@ -1,3 +1,5 @@
+const Inventory =
+  require('../inventory/inventory.model');
 const Log =
   require('../logs/log.model');
 const pool = require('../config/db');
@@ -86,6 +88,23 @@ const Sale = {
         // UPDATE STOCK
         // =========================
 
+        // stock actual
+const [stockRows] =
+  await conn.query(
+    `
+    SELECT cantidad
+    FROM productos
+    WHERE id = ?
+    `,
+    [item.id]
+  );
+
+const oldStock =
+  stockRows[0].cantidad;
+
+const newStock =
+  oldStock - item.qty;
+
         await conn.query(
           `
           UPDATE productos
@@ -98,6 +117,22 @@ const Sale = {
             item.id
           ]
         );
+
+        await Inventory.log({
+
+  producto_id:
+    item.id,
+
+  action:
+    'checkout',
+
+  old_stock:
+    oldStock,
+
+  new_stock:
+    newStock
+
+});
 
         // =========================
         // UPDATE STATUS
