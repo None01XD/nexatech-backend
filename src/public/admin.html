@@ -688,6 +688,17 @@ async function loadProducts(){
         </button>
       `;
 
+      <button
+  onclick="restockProduct(${p.id})"
+  class="btn btn-primary"
+  style="
+    width:100%;
+    margin-top:10px;
+  "
+>
+  Reabastecer
+</button>
+
       grid.appendChild(card);
 
     });
@@ -773,6 +784,73 @@ form.addEventListener(
 // =========================
 
 async function deleteProduct(id){
+  // =========================
+// RESTOCK
+// =========================
+
+async function restockProduct(id){
+
+  const amount =
+    prompt(
+      'Cantidad a agregar:'
+    );
+
+  if(!amount) return;
+
+  try {
+
+    const res = await fetch(
+      '/api/inventory/restock/' + id,
+      {
+        method:'POST',
+
+        headers:{
+          'Content-Type':
+            'application/json',
+
+          Authorization:
+            'Bearer ' + token
+        },
+
+        body: JSON.stringify({
+          amount:Number(amount)
+        })
+      }
+    );
+
+    const data =
+      await res.json();
+
+    if(!res.ok){
+
+      throw new Error(
+        data.message
+      );
+
+    }
+
+    alert(
+      'Stock actualizado 😎'
+    );
+
+    loadProducts();
+
+    loadStats();
+
+    loadLogs();
+
+  } catch(err){
+
+    console.error(err);
+
+    alert(err.message);
+
+  }
+
+}
+
+window.restockProduct =
+  restockProduct;
 
   const ok = confirm(
     '¿Eliminar producto?'

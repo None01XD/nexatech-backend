@@ -1,3 +1,5 @@
+const inventoryRoutes =
+  require('./inventory/inventory.routes');
 const adminLogsRoutes =
   require('./admin/admin.logs.routes');
 const adminSalesRoutes =
@@ -94,6 +96,15 @@ console.log(
 app.use(
   '/api/sales',
   saleRoutes
+);
+
+console.log(
+  'Mounting /api/inventory'
+);
+
+app.use(
+  '/api/inventory',
+  inventoryRoutes
 );
 
 console.log(
