@@ -74,181 +74,376 @@
 
 <script>
 (async function(){
-  const api = '/api/productos';
-  const list = document.getElementById('productos');
 
+  const api = '/api/productos';
+
+  const list =
+    document.getElementById('productos');
+
+  // =========================
+  // CART
+  // =========================
+
+  function addToCart(product){
+
+    let cart =
+      JSON.parse(
+        localStorage.getItem('cart')
+      ) || [];
+
+    // verificar si ya existe
+    const existing =
+      cart.find(p => p.id === product.id);
+
+    if(existing){
+
+      existing.qty += 1;
+
+    }else{
+
+      cart.push({
+        ...product,
+        qty: 1
+      });
+
+    }
+
+    localStorage.setItem(
+      'cart',
+      JSON.stringify(cart)
+    );
+
+    alert(
+      product.nombre +
+      ' agregado al carrito'
+    );
+
+    console.log(cart);
+
+  }
+
+  // =========================
+  // CREATE CARD
+  // =========================
 
   function createCard(p){
 
-  const item = document.createElement('article');
-  item.className = 'product-card';
-  item.setAttribute('role','listitem');
+    const item =
+      document.createElement('article');
 
-  // =========================
-  // IMAGE
-  // =========================
+    item.className = 'product-card';
 
-  const imgWrap = document.createElement('div');
-  imgWrap.className='product-preview';
+    item.setAttribute(
+      'role',
+      'listitem'
+    );
 
-  const img = document.createElement('img');
+    // =========================
+    // IMAGE
+    // =========================
 
-  let src = p.imagen || '';
+    const imgWrap =
+      document.createElement('div');
 
-  if(!src){
-    src = 'https://via.placeholder.com/600x400?text=Producto';
-  }
-  else if(
-    !src.startsWith('http') &&
-    !src.startsWith('/')
-  ){
-    src = '/images/' + src;
-  }
+    imgWrap.className='product-preview';
 
-  img.src = src;
-  img.alt = p.nombre || 'Producto';
+    const img =
+      document.createElement('img');
 
-  img.onerror = function(){
-    this.onerror = null;
-    this.src = 'https://via.placeholder.com/600x400?text=Producto';
-  };
+    let src = p.imagen || '';
 
-  imgWrap.appendChild(img);
+    if(!src){
 
-  // =========================
-  // CONTENT
-  // =========================
+      src =
+        'https://via.placeholder.com/600x400?text=Producto';
 
-  const content = document.createElement('div');
-  content.className='product-content';
+    }
+    else if(
+      !src.startsWith('http') &&
+      !src.startsWith('/')
+    ){
 
-  // NAME
-  const h = document.createElement('h3');
-  h.className='product-name';
-  h.textContent = p.nombre || 'Sin nombre';
-
-  // PRICE
-  const price = document.createElement('div');
-  price.className='product-price';
-  price.textContent = '$' + p.precio;
-
-  // STOCK
-  const meta = document.createElement('div');
-  meta.className='muted';
-  meta.textContent = p.cantidad + ' unidades';
-
-  // =========================
-  // STATUS BADGE
-  // =========================
-
-  const badge = document.createElement('div');
-
-  badge.style.marginTop = '10px';
-  badge.style.fontWeight = 'bold';
-  badge.style.padding = '6px 10px';
-  badge.style.borderRadius = '8px';
-  badge.style.width = 'fit-content';
-
-  if(p.status === 'agotado'){
-
-    badge.textContent = '🔴 AGOTADO';
-
-    badge.style.background = '#3a1010';
-    badge.style.color = '#ff8a8a';
-
-  }else{
-
-    badge.textContent = '🟢 DISPONIBLE';
-
-    badge.style.background = '#103a1f';
-    badge.style.color = '#8affb0';
-
-  }
-
-  // =========================
-  // BUTTON
-  // =========================
-
-  const cta = document.createElement('button');
-
-  cta.className='product-cta';
-
-  cta.type='button';
-
-  if(p.status === 'agotado'){
-
-    cta.textContent = 'Agotado';
-
-    cta.disabled = true;
-
-    cta.style.opacity = '0.6';
-    cta.style.cursor = 'not-allowed';
-
-  }else{
-
-    cta.textContent='Comprar';
-
-  }
-
-  const id = p.id || '';
-
-  cta.addEventListener('click', ()=> {
-
-    if(id && p.status !== 'agotado'){
-
-      location.href =
-        '/product.html?id=' + id;
+      src = '/images/' + src;
 
     }
 
-  });
+    img.src = src;
+
+    img.alt =
+      p.nombre || 'Producto';
+
+    img.onerror = function(){
+
+      this.onerror = null;
+
+      this.src =
+        'https://via.placeholder.com/600x400?text=Producto';
+
+    };
+
+    imgWrap.appendChild(img);
+
+    // =========================
+    // CONTENT
+    // =========================
+
+    const content =
+      document.createElement('div');
+
+    content.className =
+      'product-content';
+
+    // NAME
+    const h =
+      document.createElement('h3');
+
+    h.className =
+      'product-name';
+
+    h.textContent =
+      p.nombre || 'Sin nombre';
+
+    // PRICE
+    const price =
+      document.createElement('div');
+
+    price.className =
+      'product-price';
+
+    price.textContent =
+      '$' + p.precio;
+
+    // STOCK
+    const meta =
+      document.createElement('div');
+
+    meta.className='muted';
+
+    meta.textContent =
+      p.cantidad + ' unidades';
+
+    // =========================
+    // STATUS BADGE
+    // =========================
+
+    const badge =
+      document.createElement('div');
+
+    badge.style.marginTop = '10px';
+    badge.style.fontWeight = 'bold';
+    badge.style.padding = '6px 10px';
+    badge.style.borderRadius = '8px';
+    badge.style.width = 'fit-content';
+
+    if(p.status === 'agotado'){
+
+      badge.textContent =
+        '🔴 AGOTADO';
+
+      badge.style.background =
+        '#3a1010';
+
+      badge.style.color =
+        '#ff8a8a';
+
+    }else{
+
+      badge.textContent =
+        '🟢 DISPONIBLE';
+
+      badge.style.background =
+        '#103a1f';
+
+      badge.style.color =
+        '#8affb0';
+
+    }
+
+    // =========================
+    // BUTTON
+    // =========================
+
+    const cta =
+      document.createElement('button');
+
+    cta.className =
+      'product-cta';
+
+    cta.type='button';
+
+    if(p.status === 'agotado'){
+
+      cta.textContent =
+        'Agotado';
+
+      cta.disabled = true;
+
+      cta.style.opacity = '0.6';
+
+      cta.style.cursor =
+        'not-allowed';
+
+    }else{
+
+      cta.textContent =
+        'Agregar al carrito';
+
+      cta.addEventListener(
+        'click',
+        () => {
+
+          addToCart(p);
+
+        }
+      );
+
+    }
+
+    // =========================
+    // APPEND
+    // =========================
+
+    content.appendChild(h);
+
+    content.appendChild(price);
+
+    content.appendChild(meta);
+
+    content.appendChild(badge);
+
+    content.appendChild(cta);
+
+    item.appendChild(imgWrap);
+
+    item.appendChild(content);
+
+    return item;
+
+  }
 
   // =========================
-  // APPEND
+  // LOAD PRODUCTS
   // =========================
-
-  content.appendChild(h);
-  content.appendChild(price);
-  content.appendChild(meta);
-  content.appendChild(badge);
-  content.appendChild(cta);
-
-  item.appendChild(imgWrap);
-  item.appendChild(content);
-
-  return item;
- }
-   
 
   async function load(){
+
     try{
-      const res = await fetch(api,{cache:'no-store'});
-      if(!res.ok) throw new Error('API '+res.status);
-      const data = await res.json();
-      const items = Array.isArray(data) ? data : (data.rows || data.productos || []);
+
+      const res =
+        await fetch(
+          api,
+          { cache:'no-store' }
+        );
+
+      if(!res.ok){
+
+        throw new Error(
+          'API ' + res.status
+        );
+
+      }
+
+      const data =
+        await res.json();
+
+      const items =
+        Array.isArray(data)
+          ? data
+          : (
+              data.rows ||
+              data.productos ||
+              []
+            );
+
       list.innerHTML = '';
-      items.forEach(p=> list.appendChild(createCard(p)));
+
+      items.forEach(p => {
+
+        list.appendChild(
+          createCard(p)
+        );
+
+      });
+
     }catch(err){
-      list.innerHTML = '<div class="muted">No se pudieron cargar los productos.</div>';
+
+      list.innerHTML =
+        '<div class="muted">No se pudieron cargar los productos.</div>';
+
       console.error(err);
+
     }
+
   }
 
-  document.getElementById('formAdd').addEventListener('submit', async e=>{
-    e.preventDefault();
-    const nombre = document.getElementById('nombre').value;
-    const precio = Number(document.getElementById('precio').value);
-    const cantidad = Number(document.getElementById('cantidad').value);
-    try{
-      await fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre,precio,cantidad})});
-      e.target.reset();
-      await load();
-    }catch(err){ console.error(err); alert('Error al agregar'); }
-  });
+  // =========================
+  // ADD PRODUCT
+  // =========================
 
-  // expose for debug
+  document
+    .getElementById('formAdd')
+    .addEventListener(
+      'submit',
+      async e => {
+
+        e.preventDefault();
+
+        const nombre =
+          document.getElementById('nombre').value;
+
+        const precio =
+          Number(
+            document.getElementById('precio').value
+          );
+
+        const cantidad =
+          Number(
+            document.getElementById('cantidad').value
+          );
+
+        try{
+
+          await fetch(
+            api,
+            {
+              method:'POST',
+
+              headers:{
+                'Content-Type':'application/json'
+              },
+
+              body: JSON.stringify({
+                nombre,
+                precio,
+                cantidad
+              })
+            }
+          );
+
+          e.target.reset();
+
+          await load();
+
+        }catch(err){
+
+          console.error(err);
+
+          alert('Error al agregar');
+
+        }
+
+      }
+    );
+
+  // =========================
+  // DEBUG
+  // =========================
+
   window._reloadProducts = load;
+
+  // INIT
   await load();
+
 })();
 </script>
 
