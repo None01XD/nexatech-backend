@@ -210,6 +210,26 @@
     <section
       class="section-surface"
     >
+    <!-- SALES -->
+
+<section
+  class="section-surface"
+  style="margin-top:24px;"
+>
+
+  <h2
+    style="
+      margin-bottom:20px;
+    "
+  >
+    Historial de ventas
+  </h2>
+
+  <div
+    id="salesTable"
+  ></div>
+
+</section>
 
       <h2
         style="
@@ -274,6 +294,95 @@ const grid =
 // =========================
 
 async function loadStats(){
+
+// =========================
+// LOAD SALES
+// =========================
+
+async function loadSales(){
+
+  try {
+
+    const res = await fetch(
+      '/api/admin/sales',
+      {
+        headers:{
+          Authorization:
+            'Bearer ' + token
+        }
+      }
+    );
+
+    const sales =
+      await res.json();
+
+    const container =
+      document.getElementById(
+        'salesTable'
+      );
+
+    if(!sales.length){
+
+      container.innerHTML = `
+        <div class="muted">
+          No hay ventas aún
+        </div>
+      `;
+
+      return;
+
+    }
+
+    container.innerHTML = `
+      <table
+        style="
+          width:100%;
+          border-collapse:collapse;
+        "
+      >
+        <thead>
+
+          <tr>
+
+            <th>ID</th>
+
+            <th>Total</th>
+
+            <th>Fecha</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${sales.map(s => `
+            <tr>
+
+              <td>#${s.id}</td>
+
+              <td>$${s.total}</td>
+
+              <td>
+                ${new Date(
+                  s.created_at
+                ).toLocaleString()}
+              </td>
+
+            </tr>
+          `).join('')}
+
+        </tbody>
+      </table>
+    `;
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
 
   try {
 
@@ -440,6 +549,7 @@ form.addEventListener(
 
       loadProducts();
       loadStats();
+      loadSales();
 
     } catch(err){
 
