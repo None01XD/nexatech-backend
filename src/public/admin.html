@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="/css/style.css">
 
 </head>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <body>
 
 <div class="page-shell">
@@ -228,6 +228,27 @@
   <div
     id="salesTable"
   ></div>
+  <div
+  class="card"
+  style="
+    margin-top:24px;
+    padding:24px;
+  "
+>
+
+  <h2
+    style="
+      margin-bottom:20px;
+    "
+  >
+    Ventas
+  </h2>
+
+  <canvas
+    id="salesChart"
+  ></canvas>
+
+</div>
 
 </section>
 
@@ -300,6 +321,77 @@ async function loadStats(){
 // =========================
 
 async function loadSales(){
+
+  // =========================
+// CHART
+// =========================
+
+async function loadChart(){
+
+  try {
+
+    const res = await fetch(
+      '/api/admin/sales',
+      {
+        headers:{
+          Authorization:
+            'Bearer ' + token
+        }
+      }
+    );
+
+    const sales =
+      await res.json();
+
+    const labels =
+      sales.map(s =>
+        '#' + s.id
+      );
+
+    const totals =
+      sales.map(s =>
+        Number(s.total)
+      );
+
+    const ctx =
+      document
+        .getElementById('salesChart');
+
+    new Chart(ctx, {
+
+      type:'line',
+
+      data:{
+
+        labels,
+
+        datasets:[{
+
+          label:'Ventas',
+
+          data: totals,
+
+          tension:0.3
+
+        }]
+
+      },
+
+      options:{
+
+        responsive:true
+
+      }
+
+    });
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
 
   try {
 
@@ -550,6 +642,7 @@ form.addEventListener(
       loadProducts();
       loadStats();
       loadSales();
+      loadChart();
 
     } catch(err){
 
