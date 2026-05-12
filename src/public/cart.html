@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+  >
+
+  <title>Carrito — NexaTech</title>
+
+  <link
+    rel="stylesheet"
+    href="/css/style.css"
+  >
+
+</head>
+
+<body>
+
+<div class="page-shell">
+
+  <!-- HEADER -->
+  <header class="header">
+
+    <div class="brand">
+
+      <div class="logo">
+        NEXA
+      </div>
+
+      <div>
+
+        <div class="brand-name">
+          NexaTech
+        </div>
+
+        <div class="muted">
+          Carrito de compras
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="actions">
+
+      <a
+        href="/"
+        class="btn btn-secondary"
+      >
+        Seguir comprando
+      </a>
+
+    </div>
+
+  </header>
+
+  <!-- MAIN -->
+  <main class="container">
+
+    <section class="page-header">
+
+      <h1>
+        Tu carrito
+      </h1>
+
+      <p class="muted">
+        Productos seleccionados
+      </p>
+
+    </section>
+
+    <!-- CART -->
+    <section
+      class="section-surface"
+    >
+
+      <div
+        id="cartItems"
+        class="product-grid"
+      ></div>
+
+    </section>
+
+    <!-- TOTAL -->
+    <section
+      class="section-surface"
+      style="
+        margin-top:20px;
+      "
+    >
+
+      <h2 id="total">
+        Total: $0
+      </h2>
+
+      <div
+        style="
+          display:flex;
+          gap:12px;
+          margin-top:20px;
+        "
+      >
+
+        <button
+          id="clearBtn"
+          class="btn btn-secondary"
+        >
+          Vaciar carrito
+        </button>
+
+        <button
+          id="checkoutBtn"
+          class="btn btn-primary"
+        >
+          Proceder al pago
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script>
+
+// =========================
+// LOAD CART
+// =========================
+
+let cart =
+  JSON.parse(
+    localStorage.getItem('cart')
+  ) || [];
+
+const cartItems =
+  document.getElementById('cartItems');
+
+const totalEl =
+  document.getElementById('total');
+
+// =========================
+// RENDER
+// =========================
+
+function renderCart(){
+
+  cartItems.innerHTML = '';
+
+  let total = 0;
+
+  if(cart.length === 0){
+
+    cartItems.innerHTML = `
+      <div class="muted">
+        El carrito está vacío
+      </div>
+    `;
+
+    totalEl.textContent =
+      'Total: $0';
+
+    return;
+
+  }
+
+  cart.forEach(item => {
+
+    total +=
+      Number(item.precio) *
+      item.qty;
+
+    const card =
+      document.createElement('div');
+
+    card.className = 'card';
+
+    card.innerHTML = `
+      <h3>${item.nombre}</h3>
+
+      <p class="muted">
+        Precio: $${item.precio}
+      </p>
+
+      <p class="muted">
+        Cantidad: ${item.qty}
+      </p>
+
+      <h3>
+        Subtotal:
+        $${(
+          Number(item.precio) *
+          item.qty
+        ).toFixed(2)}
+      </h3>
+
+      <button
+        onclick="removeItem(${item.id})"
+        class="btn btn-secondary"
+        style="
+          width:100%;
+          margin-top:14px;
+        "
+      >
+        Eliminar
+      </button>
+    `;
+
+    cartItems.appendChild(card);
+
+  });
+
+  totalEl.textContent =
+    'Total: $' +
+    total.toFixed(2);
+
+}
+
+// =========================
+// REMOVE
+// =========================
+
+function removeItem(id){
+
+  cart =
+    cart.filter(
+      p => p.id !== id
+    );
+
+  localStorage.setItem(
+    'cart',
+    JSON.stringify(cart)
+  );
+
+  renderCart();
+
+}
+
+window.removeItem = removeItem;
+
+// =========================
+// CLEAR CART
+// =========================
+
+document
+  .getElementById('clearBtn')
+  .addEventListener(
+    'click',
+    () => {
+
+      const ok =
+        confirm(
+          '¿Vaciar carrito?'
+        );
+
+      if(!ok) return;
+
+      cart = [];
+
+      localStorage.removeItem('cart');
+
+      renderCart();
+
+    }
+  );
+
+// =========================
+// CHECKOUT
+// =========================
+
+document
+  .getElementById('checkoutBtn')
+  .addEventListener(
+    'click',
+    () => {
+
+      if(cart.length === 0){
+
+        alert(
+          'El carrito está vacío'
+        );
+
+        return;
+
+      }
+
+      alert(
+        'Checkout próximamente 😎'
+      );
+
+    }
+  );
+
+// INIT
+renderCart();
+
+</script>
+
+</body>
+</html>
