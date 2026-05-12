@@ -1,3 +1,4 @@
+const saleRoutes = require('./sales/sale.routes');
 const adminRoutes = require('./admin/admin.routes');
 const express = require('express');
 const path = require('path');
@@ -5,6 +6,12 @@ const cors = require('cors');
 require('dotenv').config();
 
 const productoRoutes = require('./routes/producto.routes');
+console.log('Mounting /api/sales');
+
+app.use(
+  '/api/sales',
+  saleRoutes
+);
 const authRoutes = require('./auth/auth.routes');
 
 const app = express();
