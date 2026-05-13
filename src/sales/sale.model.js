@@ -1,8 +1,11 @@
+const pool =
+  require('../config/db');
+
 const Inventory =
   require('../inventory/inventory.model');
+
 const Log =
   require('../logs/log.model');
-const pool = require('../config/db');
 
 const Sale = {
 
@@ -12,6 +15,17 @@ const Sale = {
 
   async create(cart){
 
+    if(
+      !Array.isArray(cart) ||
+      cart.length === 0
+    ){
+
+      throw new Error(
+        'Carrito vacío'
+      );
+
+    }
+
     const conn =
       await pool.getConnection();
 
@@ -19,16 +33,68 @@ const Sale = {
 
       await conn.beginTransaction();
 
-      // =========================
-      // TOTAL
-      // =========================
-
       let total = 0;
+
+      // =========================
+      // VALIDATE PRODUCTS
+      // =========================
 
       for(const item of cart){
 
+        if(
+          !item.id ||
+          !item.qty ||
+          item.qty <= 0
+        ){
+
+          throw new Error(
+            'Producto inválido'
+          );
+
+        }
+
+        // =========================
+        // PRODUCT EXISTS
+        // =========================
+
+        const [rows] =
+          await conn.query(
+            `
+            SELECT *
+            FROM productos
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [item.id]
+          );
+
+        if(!rows.length){
+
+          throw new Error(
+            `Producto ${item.id} no existe`
+          );
+
+        }
+
+        const product =
+          rows[0];
+
+        // =========================
+        // VALIDATE STOCK
+        // =========================
+
+        if(
+          product.cantidad < item.qty
+        ){
+
+          throw new Error(
+            `Stock insuficiente para ${product.nombre}`
+          );
+
+        }
+
         total +=
-          Number(item.precio) *
+          Number(product.precio) *
           item.qty;
 
       }
@@ -51,16 +117,43 @@ const Sale = {
         saleResult.insertId;
 
       // =========================
-      // ITEMS
+      // PROCESS ITEMS
       // =========================
 
       for(const item of cart){
 
+        // =========================
+        // GET PRODUCT
+        // =========================
+
+        const [rows] =
+          await conn.query(
+            `
+            SELECT *
+            FROM productos
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [item.id]
+          );
+
+        const product =
+          rows[0];
+
+        const oldStock =
+          product.cantidad;
+
+        const newStock =
+          oldStock - item.qty;
+
         const subtotal =
-          Number(item.precio) *
+          Number(product.precio) *
           item.qty;
 
-        // guardar item
+        // =========================
+        // INSERT ITEM
+        // =========================
+
         await conn.query(
           `
           INSERT INTO venta_items
@@ -76,97 +169,86 @@ const Sale = {
           `,
           [
             ventaId,
-            item.id,
-            item.nombre,
-            item.precio,
+            product.id,
+            product.nombre,
+            product.precio,
             item.qty,
             subtotal
           ]
         );
 
         // =========================
-        // UPDATE STOCK
+        // UPDATE PRODUCT
         // =========================
-
-        // stock actual
-const [stockRows] =
-  await conn.query(
-    `
-    SELECT cantidad
-    FROM productos
-    WHERE id = ?
-    `,
-    [item.id]
-  );
-
-const oldStock =
-  stockRows[0].cantidad;
-
-const newStock =
-  oldStock - item.qty;
 
         await conn.query(
           `
           UPDATE productos
-          SET cantidad =
-            cantidad - ?
+          SET
+            cantidad = ?,
+            status =
+              CASE
+                WHEN ? <= 0
+                THEN 'agotado'
+                ELSE 'disponible'
+              END
           WHERE id = ?
           `,
           [
-            item.qty,
-            item.id
+            newStock,
+            newStock,
+            product.id
           ]
         );
 
+        // =========================
+        // INVENTORY LOG
+        // =========================
+
         await Inventory.log({
 
-  producto_id:
-    item.id,
+          producto_id:
+            product.id,
 
-  action:
-    'checkout',
+          action:
+            'checkout',
 
-  old_stock:
-    oldStock,
+          old_stock:
+            oldStock,
 
-  new_stock:
-    newStock
+          new_stock:
+            newStock
 
-});
-
-        // =========================
-        // UPDATE STATUS
-        // =========================
-
-        await conn.query(
-          `
-          UPDATE productos
-          SET status =
-            CASE
-              WHEN cantidad <= 0
-              THEN 'agotado'
-              ELSE 'disponible'
-            END
-          WHERE id = ?
-          `,
-          [item.id]
-        );
+        });
 
       }
 
+      // =========================
+      // COMMIT
+      // =========================
+
       await conn.commit();
+
+      // =========================
+      // SYSTEM LOG
+      // =========================
+
       await Log.create(
 
-  'Nueva venta',
+        'Nueva venta',
 
-  `Venta #${ventaId} realizada por $${total}`
+        `Venta #${ventaId} realizada por $${total}`
 
-);
+      );
 
       return {
+
         ok:true,
+
         ventaId,
+
         total
+
       };
 
     } catch(err){

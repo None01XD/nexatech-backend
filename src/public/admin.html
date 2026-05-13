@@ -12,10 +12,15 @@
 
   <title>Admin Dashboard — NexaTech</title>
 
-  <link rel="stylesheet" href="/css/style.css">
+  <link
+    rel="stylesheet"
+    href="/css/style.css"
+  >
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <body>
 
 <div class="page-shell">
@@ -57,7 +62,7 @@
   </header>
 
   <!-- MAIN -->
-  <main>
+  <main class="container">
 
     <!-- TITLE -->
     <section
@@ -75,70 +80,48 @@
       </h1>
 
       <p class="muted">
-        Gestiona productos, stock y precios
+        Gestiona productos, ventas e inventario
       </p>
-      <!-- STATS -->
 
-<section
-  class="grid-4"
-  style="
-    margin-top:24px;
-    margin-bottom:24px;
-  "
->
+    </section>
 
-  <div class="card">
+    <!-- STATS -->
+    <section
+      class="grid-4"
+      style="
+        margin-top:24px;
+        margin-bottom:24px;
+      "
+    >
 
-    <h3>Total ventas</h3>
+      <div class="card">
+        <h3>Total ventas</h3>
+        <h1 id="statSales">0</h1>
+      </div>
 
-    <h1 id="statSales">
-      0
-    </h1>
+      <div class="card">
+        <h3>Ganancias</h3>
+        <h1 id="statRevenue">$0</h1>
+      </div>
 
-  </div>
+      <div class="card">
+        <h3>Productos</h3>
+        <h1 id="statProducts">0</h1>
+      </div>
 
-  <div class="card">
-
-    <h3>Ganancias</h3>
-
-    <h1 id="statRevenue">
-      $0
-    </h1>
-
-  </div>
-
-  <div class="card">
-
-    <h3>Productos</h3>
-
-    <h1 id="statProducts">
-      0
-    </h1>
-
-  </div>
-
-  <div class="card">
-
-    <h3>Agotados</h3>
-
-    <h1 id="statOut">
-      0
-    </h1>
-
-  </div>
-
-</section>
+      <div class="card">
+        <h3>Agotados</h3>
+        <h1 id="statOut">0</h1>
+      </div>
 
     </section>
 
     <!-- FORM -->
-    <section
-      class="section-surface"
-    >
+    <section class="section-surface">
 
       <h2
         style="
-          margin-bottom:18px;
+          margin-bottom:20px;
         "
       >
         Agregar producto
@@ -209,67 +192,8 @@
     <!-- PRODUCTS -->
     <section
       class="section-surface"
+      style="margin-top:24px;"
     >
-    <!-- SALES -->
-
-<section
-  class="section-surface"
-  style="margin-top:24px;"
->
-
-  <h2
-    style="
-      margin-bottom:20px;
-    "
-  >
-    Historial de ventas
-  </h2>
-
-  <div
-    id="salesTable"
-  ></div>
-  <div
-  class="card"
-  style="
-    margin-top:24px;
-    padding:24px;
-  "
->
-
-  <h2
-    style="
-      margin-bottom:20px;
-    "
-  >
-    Ventas
-  </h2>
-
-  <canvas
-    id="salesChart"
-  ></canvas>
-
-  <!-- LOGS -->
-
-<section
-  class="section-surface"
-  style="margin-top:24px;"
->
-
-  <h2
-    style="
-      margin-bottom:20px;
-    "
-  >
-    Logs del sistema
-  </h2>
-
-  <div id="logsTable"></div>
-
-</section>
-
-</div>
-
-</section>
 
       <h2
         style="
@@ -283,6 +207,60 @@
         id="productsGrid"
         class="product-grid"
       ></div>
+
+    </section>
+
+    <!-- SALES -->
+    <section
+      class="section-surface"
+      style="margin-top:24px;"
+    >
+
+      <h2
+        style="
+          margin-bottom:20px;
+        "
+      >
+        Historial de ventas
+      </h2>
+
+      <div id="salesTable"></div>
+
+    </section>
+
+    <!-- CHART -->
+    <section
+      class="section-surface"
+      style="margin-top:24px;"
+    >
+
+      <h2
+        style="
+          margin-bottom:20px;
+        "
+      >
+        Ventas
+      </h2>
+
+      <canvas id="salesChart"></canvas>
+
+    </section>
+
+    <!-- LOGS -->
+    <section
+      class="section-surface"
+      style="margin-top:24px;"
+    >
+
+      <h2
+        style="
+          margin-bottom:20px;
+        "
+      >
+        Logs del sistema
+      </h2>
+
+      <div id="logsTable"></div>
 
     </section>
 
@@ -324,16 +302,328 @@ document
   });
 
 // =========================
-// LOAD PRODUCTS
+// ELEMENTS
 // =========================
 
 const grid =
-  document.getElementById('productsGrid');
-  // =========================
+  document.getElementById(
+    'productsGrid'
+  );
+
+// =========================
+// LOAD PRODUCTS
+// =========================
+
+async function loadProducts(){
+
+  try {
+
+    const res = await fetch(
+      '/api/productos'
+    );
+
+    const data =
+      await res.json();
+
+    const productos =
+      data.productos || [];
+
+    grid.innerHTML = '';
+
+    productos.forEach(p => {
+
+      const card =
+        document.createElement('div');
+
+      card.className =
+        'card';
+
+      card.innerHTML = `
+
+        <h3>${p.nombre}</h3>
+
+        <p class="muted">
+          Precio: $${p.precio}
+        </p>
+
+        <p class="muted">
+          Stock: ${p.cantidad}
+        </p>
+
+        <p
+          style="
+            margin-top:10px;
+            font-weight:bold;
+            color:
+              ${
+                p.status === 'agotado'
+                ? '#ff7a7a'
+                : '#7aff9d'
+              };
+          "
+        >
+          ${p.status.toUpperCase()}
+        </p>
+
+        <button
+          onclick="deleteProduct(${p.id})"
+          class="btn btn-secondary"
+          style="
+            width:100%;
+            margin-top:14px;
+          "
+        >
+          Eliminar
+        </button>
+
+        <button
+          onclick="restockProduct(${p.id})"
+          class="btn btn-primary"
+          style="
+            width:100%;
+            margin-top:10px;
+          "
+        >
+          Reabastecer
+        </button>
+
+      `;
+
+      grid.appendChild(card);
+
+    });
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
+// =========================
+// CREATE PRODUCT
+// =========================
+
+document
+  .getElementById('productForm')
+  .addEventListener(
+    'submit',
+    async e => {
+
+      e.preventDefault();
+
+      const nombre =
+        document.getElementById('nombre').value;
+
+      const precio =
+        Number(
+          document.getElementById('precio').value
+        );
+
+      const cantidad =
+        Number(
+          document.getElementById('cantidad').value
+        );
+
+      try {
+
+        const res = await fetch(
+          '/api/productos',
+          {
+            method:'POST',
+
+            headers:{
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+              nombre,
+              precio,
+              cantidad
+            })
+          }
+        );
+
+        if(!res.ok){
+
+          throw new Error(
+            'Error creando producto'
+          );
+
+        }
+
+        e.target.reset();
+
+        await refreshAll();
+
+      } catch(err){
+
+        console.error(err);
+
+        alert(err.message);
+
+      }
+
+    }
+  );
+
+// =========================
+// DELETE PRODUCT
+// =========================
+
+async function deleteProduct(id){
+
+  const ok =
+    confirm(
+      '¿Eliminar producto?'
+    );
+
+  if(!ok) return;
+
+  try {
+
+    const res = await fetch(
+      '/api/productos/' + id,
+      {
+        method:'DELETE'
+      }
+    );
+
+    if(!res.ok){
+
+      throw new Error(
+        'Error eliminando'
+      );
+
+    }
+
+    await refreshAll();
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
+window.deleteProduct =
+  deleteProduct;
+
+// =========================
+// RESTOCK
+// =========================
+
+async function restockProduct(id){
+
+  const amount =
+    prompt(
+      'Cantidad a agregar:'
+    );
+
+  if(!amount) return;
+
+  try {
+
+    const res = await fetch(
+      '/api/inventory/restock/' + id,
+      {
+        method:'POST',
+
+        headers:{
+          'Content-Type':
+            'application/json',
+
+          Authorization:
+            'Bearer ' + token
+        },
+
+        body: JSON.stringify({
+          amount:Number(amount)
+        })
+      }
+    );
+
+    const data =
+      await res.json();
+
+    if(!res.ok){
+
+      throw new Error(
+        data.message
+      );
+
+    }
+
+    alert(
+      'Stock actualizado 😎'
+    );
+
+    await refreshAll();
+
+  } catch(err){
+
+    console.error(err);
+
+    alert(err.message);
+
+  }
+
+}
+
+window.restockProduct =
+  restockProduct;
+
+// =========================
 // LOAD STATS
 // =========================
 
 async function loadStats(){
+
+  try {
+
+    const res = await fetch(
+      '/api/admin/stats',
+      {
+        headers:{
+          Authorization:
+            'Bearer ' + token
+        }
+      }
+    );
+
+    const data =
+      await res.json();
+
+    document.getElementById(
+      'statSales'
+    ).textContent =
+      data.totalSales;
+
+    document.getElementById(
+      'statRevenue'
+    ).textContent =
+      '$' + data.revenue;
+
+    document.getElementById(
+      'statProducts'
+    ).textContent =
+      data.totalProducts;
+
+    document.getElementById(
+      'statOut'
+    ).textContent =
+      data.outOfStock;
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
 
 // =========================
 // LOAD SALES
@@ -341,13 +631,167 @@ async function loadStats(){
 
 async function loadSales(){
 
-  // =========================
-// CHART
+  try {
+
+    const res = await fetch(
+      '/api/admin/sales',
+      {
+        headers:{
+          Authorization:
+            'Bearer ' + token
+        }
+      }
+    );
+
+    const sales =
+      await res.json();
+
+    const container =
+      document.getElementById(
+        'salesTable'
+      );
+
+    if(!sales.length){
+
+      container.innerHTML = `
+        <div class="muted">
+          No hay ventas aún
+        </div>
+      `;
+
+      return;
+
+    }
+
+    container.innerHTML = `
+      <table
+        style="
+          width:100%;
+          border-collapse:collapse;
+        "
+      >
+        <thead>
+
+          <tr>
+
+            <th>ID</th>
+            <th>Total</th>
+            <th>Fecha</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${sales.map(s => `
+            <tr>
+
+              <td>#${s.id}</td>
+
+              <td>$${s.total}</td>
+
+              <td>
+                ${new Date(
+                  s.created_at
+                ).toLocaleString()}
+              </td>
+
+            </tr>
+          `).join('')}
+
+        </tbody>
+      </table>
+    `;
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
 // =========================
+// LOAD CHART
+// =========================
+
+let salesChart = null;
 
 async function loadChart(){
 
-  // =========================
+  try {
+
+    const res = await fetch(
+      '/api/admin/sales',
+      {
+        headers:{
+          Authorization:
+            'Bearer ' + token
+        }
+      }
+    );
+
+    const sales =
+      await res.json();
+
+    const labels =
+      sales.map(s => '#' + s.id);
+
+    const totals =
+      sales.map(s =>
+        Number(s.total)
+      );
+
+    const ctx =
+      document.getElementById(
+        'salesChart'
+      );
+
+    if(salesChart){
+
+      salesChart.destroy();
+
+    }
+
+    salesChart =
+      new Chart(ctx, {
+
+        type:'line',
+
+        data:{
+
+          labels,
+
+          datasets:[{
+
+            label:'Ventas',
+
+            data:totals,
+
+            tension:0.3
+
+          }]
+
+        },
+
+        options:{
+
+          responsive:true
+
+        }
+
+      });
+
+  } catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
+// =========================
 // LOAD LOGS
 // =========================
 
@@ -397,9 +841,7 @@ async function loadLogs(){
           <tr>
 
             <th>Acción</th>
-
             <th>Detalles</th>
-
             <th>Fecha</th>
 
           </tr>
@@ -411,13 +853,9 @@ async function loadLogs(){
           ${logs.map(log => `
             <tr>
 
-              <td>
-                ${log.action}
-              </td>
+              <td>${log.action}</td>
 
-              <td>
-                ${log.details}
-              </td>
+              <td>${log.details}</td>
 
               <td>
                 ${new Date(
@@ -440,448 +878,21 @@ async function loadLogs(){
 
 }
 
-  try {
-
-    const res = await fetch(
-      '/api/admin/sales',
-      {
-        headers:{
-          Authorization:
-            'Bearer ' + token
-        }
-      }
-    );
-
-    const sales =
-      await res.json();
-
-    const labels =
-      sales.map(s =>
-        '#' + s.id
-      );
-
-    const totals =
-      sales.map(s =>
-        Number(s.total)
-      );
-
-    const ctx =
-      document
-        .getElementById('salesChart');
-
-    new Chart(ctx, {
-
-      type:'line',
-
-      data:{
-
-        labels,
-
-        datasets:[{
-
-          label:'Ventas',
-
-          data: totals,
-
-          tension:0.3
-
-        }]
-
-      },
-
-      options:{
-
-        responsive:true
-
-      }
-
-    });
-
-  } catch(err){
-
-    console.error(err);
-
-  }
-
-}
-
-  try {
-
-    const res = await fetch(
-      '/api/admin/sales',
-      {
-        headers:{
-          Authorization:
-            'Bearer ' + token
-        }
-      }
-    );
-
-    const sales =
-      await res.json();
-
-    const container =
-      document.getElementById(
-        'salesTable'
-      );
-
-    if(!sales.length){
-
-      container.innerHTML = `
-        <div class="muted">
-          No hay ventas aún
-        </div>
-      `;
-
-      return;
-
-    }
-
-    container.innerHTML = `
-      <table
-        style="
-          width:100%;
-          border-collapse:collapse;
-        "
-      >
-        <thead>
-
-          <tr>
-
-            <th>ID</th>
-
-            <th>Total</th>
-
-            <th>Fecha</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${sales.map(s => `
-            <tr>
-
-              <td>#${s.id}</td>
-
-              <td>$${s.total}</td>
-
-              <td>
-                ${new Date(
-                  s.created_at
-                ).toLocaleString()}
-              </td>
-
-            </tr>
-          `).join('')}
-
-        </tbody>
-      </table>
-    `;
-
-  } catch(err){
-
-    console.error(err);
-
-  }
-
-}
-
-  try {
-
-    const res = await fetch(
-      '/api/admin/stats',
-      {
-        headers:{
-          Authorization:
-            'Bearer ' + token
-        }
-      }
-    );
-
-    const data =
-      await res.json();
-
-    document.getElementById(
-      'statSales'
-    ).textContent =
-      data.totalSales;
-
-    document.getElementById(
-      'statRevenue'
-    ).textContent =
-      '$' + data.revenue;
-
-    document.getElementById(
-      'statProducts'
-    ).textContent =
-      data.totalProducts;
-
-    document.getElementById(
-      'statOut'
-    ).textContent =
-      data.outOfStock;
-
-  } catch(err){
-
-    console.error(err);
-
-  }
-
-}
-
-async function loadProducts(){
-
-  try {
-
-    const res = await fetch(
-      '/api/productos'
-    );
-
-    const productos =
-      await res.json();
-
-    grid.innerHTML = '';
-
-    productos.productos.forEach(p => {
-
-      const card =
-        document.createElement('div');
-
-      card.className = 'card';
-
-      card.innerHTML = `
-        <h3>${p.nombre}</h3>
-
-        <p class="muted">
-          Precio: $${p.precio}
-        </p>
-
-        <p class="muted">
-          Stock: ${p.cantidad}
-        </p>
-
-        <p
-          style="
-            margin-top:10px;
-            font-weight:bold;
-            color:
-              ${p.status === 'agotado'
-                ? '#ff7a7a'
-                : '#7aff9d'
-              };
-          "
-        >
-          ${p.status.toUpperCase()}
-        </p>
-
-        <button
-          onclick="deleteProduct(${p.id})"
-          class="btn btn-secondary"
-          style="
-            width:100%;
-            margin-top:14px;
-          "
-        >
-          Eliminar
-        </button>
-      `;
-
-      <button
-  onclick="restockProduct(${p.id})"
-  class="btn btn-primary"
-  style="
-    width:100%;
-    margin-top:10px;
-  "
->
-  Reabastecer
-</button>
-
-      grid.appendChild(card);
-
-    });
-
-  } catch(err){
-
-    console.error(err);
-
-  }
-
-}
-
 // =========================
-// CREATE PRODUCT
+// REFRESH ALL
 // =========================
 
-const form =
-  document.getElementById('productForm');
+async function refreshAll(){
 
-form.addEventListener(
-  'submit',
-  async (e) => {
+  await loadProducts();
 
-    e.preventDefault();
+  await loadStats();
 
-    const nombre =
-      document.getElementById('nombre').value;
+  await loadSales();
 
-    const precio =
-      document.getElementById('precio').value;
+  await loadChart();
 
-    const cantidad =
-      document.getElementById('cantidad').value;
-
-    try {
-
-      const res = await fetch(
-        '/api/productos',
-        {
-          method:'POST',
-
-          headers:{
-            'Content-Type':'application/json'
-          },
-
-          body: JSON.stringify({
-            nombre,
-            precio,
-            cantidad
-          })
-        }
-      );
-
-      if(!res.ok){
-
-        throw new Error(
-          'Error creando producto'
-        );
-
-      }
-
-      form.reset();
-
-      loadProducts();
-      loadStats();
-      loadSales();
-      loadChart();
-      loadLogs();
-
-    } catch(err){
-
-      console.error(err);
-
-      alert(err.message);
-
-    }
-
-  }
-);
-
-// =========================
-// DELETE
-// =========================
-
-async function deleteProduct(id){
-  // =========================
-// RESTOCK
-// =========================
-
-async function restockProduct(id){
-
-  const amount =
-    prompt(
-      'Cantidad a agregar:'
-    );
-
-  if(!amount) return;
-
-  try {
-
-    const res = await fetch(
-      '/api/inventory/restock/' + id,
-      {
-        method:'POST',
-
-        headers:{
-          'Content-Type':
-            'application/json',
-
-          Authorization:
-            'Bearer ' + token
-        },
-
-        body: JSON.stringify({
-          amount:Number(amount)
-        })
-      }
-    );
-
-    const data =
-      await res.json();
-
-    if(!res.ok){
-
-      throw new Error(
-        data.message
-      );
-
-    }
-
-    alert(
-      'Stock actualizado 😎'
-    );
-
-    loadProducts();
-
-    loadStats();
-
-    loadLogs();
-
-  } catch(err){
-
-    console.error(err);
-
-    alert(err.message);
-
-  }
-
-}
-
-window.restockProduct =
-  restockProduct;
-
-  const ok = confirm(
-    '¿Eliminar producto?'
-  );
-
-  if(!ok) return;
-
-  try {
-
-    const res = await fetch(
-      '/api/productos/' + id,
-      {
-        method:'DELETE'
-      }
-    );
-
-    if(!res.ok){
-
-      throw new Error(
-        'Error eliminando'
-      );
-
-    }
-
-    loadProducts();
-
-  } catch(err){
-
-    console.error(err);
-
-  }
+  await loadLogs();
 
 }
 
@@ -889,7 +900,7 @@ window.restockProduct =
 // INIT
 // =========================
 
-loadProducts();
+refreshAll();
 
 </script>
 
